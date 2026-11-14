@@ -1,0 +1,6 @@
+{
+  "name": "arbix-tools",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" }
+}
