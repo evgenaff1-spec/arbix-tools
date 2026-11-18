@@ -5,10 +5,9 @@
 //   GET /api/nav?key=…&edit=24:123,49:456       -> edits earlier messages instead of posting new ones
 // The bot must be an admin of the group with the right to pin messages.
 // Topics and texts: lib/nav-config.js.
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { tg, STUDENTS } from '../lib/tg.js';
 import NAV from '../lib/nav-config.js';
+import SUPPORT from '../lib/support-config.js';
 
 const cfg = () => NAV;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -63,7 +62,7 @@ export default async function handler(req, res) {
   if (!BOT_TOKEN) { res.status(500).json({ error: 'set BOT_TOKEN' }); return; }
   if (!CRON_SECRET || req.query?.key !== CRON_SECRET) { res.status(401).json({ error: 'bad key' }); return; }
   const c = cfg();
-  let appUrl = ''; try { appUrl = JSON.parse(readFileSync(join(process.cwd(), 'support.json'), 'utf8')).appUrl || ''; } catch {}
+  let appUrl = SUPPORT.appUrl || '';
   appUrl = (appUrl || `https://${req.headers.host}`).replace(/\/$/, '');
   let botUser = ''; try { botUser = (await tg('getMe', {})).username; } catch {}
   let msgs = build(c, appUrl, botUser);

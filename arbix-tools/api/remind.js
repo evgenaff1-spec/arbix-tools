@@ -1,9 +1,8 @@
 // Daily reminder bot. Vercel Cron calls this once a day (see vercel.json).
-// For every lesson in schedule.json: posts "завтра урок" the day before and "сьогодні о 21:00" on the day.
+// For every lesson in lib/schedule-config.js: posts "завтра урок" the day before and "сьогодні о 21:00" on the day.
 // Env: BOT_TOKEN (from @BotFather), CHAT_ID (group id, e.g. -1004356545590), CRON_SECRET (any random string).
 // Manual test: /api/remind?test=1&key=<CRON_SECRET>  -> sends a test message to the announcements topic.
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import SCHEDULE from '../lib/schedule-config.js';
 
 const kyivDate = (offsetDays = 0) => {
   const d = new Date(Date.now() + offsetDays * 86400000);
@@ -27,7 +26,7 @@ export default async function handler(req, res) {
   if (CRON_SECRET && auth !== `Bearer ${CRON_SECRET}` && key !== CRON_SECRET) { res.status(401).json({ error: 'unauthorized' }); return; }
   if (!BOT_TOKEN || !CHAT_ID) { res.status(500).json({ error: 'set BOT_TOKEN and CHAT_ID env vars' }); return; }
 
-  const cfg = JSON.parse(readFileSync(join(process.cwd(), 'schedule.json'), 'utf8'));
+  const cfg = SCHEDULE;
   const annTopic = cfg.announcementsTopicId;
   const sent = [];
   try {

@@ -11,11 +11,11 @@
 // The bot must be a member (better admin) of that group.
 // Optional: SUPPORT_THREAD_ID (topic id, if the curators' group has topics).
 // One-time setup: open /api/support?setup=1&key=<CRON_SECRET>
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { tg, esc, hasAccess, supportTarget } from '../lib/tg.js';
 
-const cfg = () => JSON.parse(readFileSync(join(process.cwd(), 'support.json'), 'utf8'));
+import SUPPORT from '../lib/support-config.js';
+
+const cfg = () => SUPPORT;
 const TAG = /🆔\s*(\d{4,})/;
 const DZ = /^\/dz(?:@\w+)?(?:\s+(\d{1,2}))?\s*([\s\S]*)$/i;
 const fill = (t, h) => String(t || '').replace('{stage}', h.stage).replace('{stage}', h.stage).replace('{title}', h.title);

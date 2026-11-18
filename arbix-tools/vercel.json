@@ -6,14 +6,7 @@
     }
   ],
   "functions": {
-    "api/remind.js": {
-      "includeFiles": "schedule.json"
-    },
-    "api/support.js": {
-      "includeFiles": "support.json"
-    },
     "api/nav.js": {
-      "includeFiles": "support.json",
       "maxDuration": 60
     }
   }
