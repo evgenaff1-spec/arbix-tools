@@ -13,7 +13,7 @@
       "includeFiles": "support.json"
     },
     "api/nav.js": {
-      "includeFiles": "{nav.json,support.json}",
+      "includeFiles": "support.json",
       "maxDuration": 60
     }
   }

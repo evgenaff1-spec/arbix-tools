@@ -4,12 +4,13 @@
 //   GET /api/nav?key=…&only=24,49               -> only these topics
 //   GET /api/nav?key=…&edit=24:123,49:456       -> edits earlier messages instead of posting new ones
 // The bot must be an admin of the group with the right to pin messages.
-// Topics and texts: nav.json.
+// Topics and texts: lib/nav-config.js.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tg, STUDENTS } from '../lib/tg.js';
+import NAV from '../lib/nav-config.js';
 
-const cfg = () => JSON.parse(readFileSync(join(process.cwd(), 'nav.json'), 'utf8'));
+const cfg = () => NAV;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function build(c, appUrl, botUser) {
@@ -63,7 +64,7 @@ export default async function handler(req, res) {
   if (!CRON_SECRET || req.query?.key !== CRON_SECRET) { res.status(401).json({ error: 'bad key' }); return; }
   const c = cfg();
   let appUrl = ''; try { appUrl = JSON.parse(readFileSync(join(process.cwd(), 'support.json'), 'utf8')).appUrl || ''; } catch {}
-  appUrl = appUrl.replace(/\/$/, '');
+  appUrl = (appUrl || `https://${req.headers.host}`).replace(/\/$/, '');
   let botUser = ''; try { botUser = (await tg('getMe', {})).username; } catch {}
   let msgs = build(c, appUrl, botUser);
   const only = String(req.query.only || '').split(',').filter(Boolean).map(Number);
@@ -89,5 +90,5 @@ export default async function handler(req, res) {
   const host = `https://${req.headers.host}/api/nav?key=${encodeURIComponent(CRON_SECRET)}`;
   res.status(200).json({ ok: !errors.length, posted: done.length, errors,
     editUrl: `${host}&edit=${done.join(',')}`,
-    note: 'Збережи editUrl: щоб змінити тексти/кнопки пізніше без дублів, відредагуй nav.json, задеплой і відкрий editUrl.' });
+    note: 'Збережи editUrl: щоб змінити тексти/кнопки пізніше без дублів, відредагуй lib/nav-config.js, задеплой і відкрий editUrl.' });
 }
