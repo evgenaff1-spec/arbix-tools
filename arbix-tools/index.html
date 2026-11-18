@@ -17,6 +17,8 @@
     <button data-tab="scan" class="on">📊 Сканер</button>
     <button data-tab="calc">🧮 Калькулятор</button>
     <button data-tab="quiz">✅ Тести</button>
+    <button data-tab="trainer">🎯 Тренажер</button>
+    <button data-tab="exam">🎓 Іспит</button>
     <button data-tab="check">🛡 Чекліст</button>
     <button data-tab="tpl">💬 Шаблони</button>
     <button data-tab="gloss">📖 Глосарій</button>
@@ -89,6 +91,40 @@
   <div class="panel" id="quizBox" hidden></div>
 </section>
 
+<!-- TRAINER -->
+<section id="trainer" class="tab">
+  <div class="panel">
+    <h3>🎯 Тренажер ситуацій</h3>
+    <p class="hint">20 реальних ситуацій з P2P. Обери, що зробиш, і подивись розбір. Для ДЗ етапу 6 треба від 16/20.</p>
+    <div id="trBox"></div>
+  </div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" class="tab">
+  <div class="panel" id="exStart">
+    <h3>🎓 Фінальний іспит</h3>
+    <p class="hint">30 питань по всіх 10 етапах. Щоб скласти, треба від 24 правильних (80%). Після успіху — іменний сертифікат ARBI X TEAM з номером, який можна перевірити.</p>
+    <label for="exName">Імʼя та прізвище для сертифіката</label>
+    <input id="exName" maxlength="60" placeholder="напр. Олександр Коваленко">
+    <label class="chk"><input type="checkbox" id="exAgree"> <span>Я ознайомився з <a href="#" data-open="terms">умовами навчання</a> і розумію, що сам відповідаю за свої угоди.</span></label>
+    <button class="btn" id="exGo">Почати іспит</button>
+    <p class="muted" id="exMsg"></p>
+  </div>
+  <div class="panel" id="exBox" hidden></div>
+  <div class="panel">
+    <h3>Перевірити сертифікат</h3>
+    <div class="grid2"><div><label>Номер</label><input id="vId" placeholder="AX-261117-XXXXXXXX"></div><div><label>Імʼя та прізвище</label><input id="vName"></div></div>
+    <button class="btn ghost" id="vGo">Перевірити</button>
+    <div id="vRes" class="result"></div>
+  </div>
+</section>
+
+<!-- TERMS -->
+<section id="terms" class="tab">
+  <div class="panel"><h3>⚖️ Умови навчання і відповідальність</h3><div id="termsBox" class="terms"></div></div>
+</section>
+
 <!-- CHECKLIST -->
 <section id="check" class="tab">
   <div class="panel">
@@ -109,7 +145,7 @@
   <div class="panel"><h3>📖 Глосарій</h3><input id="gSearch" placeholder="Пошук терміну…"><div id="gList"></div></div>
 </section>
 </main>
-<footer class="foot">ARBI X TEAM · Базовий тариф</footer>
+<footer class="foot">ARBI X TEAM · Базовий тариф · <a href="#" data-open="terms">Умови і відповідальність</a><br>Освітній проєкт. Не є фінансовою порадою.</footer>
 <script src="/assets/data.js"></script>
 <script src="/assets/app.js"></script>
 </body>

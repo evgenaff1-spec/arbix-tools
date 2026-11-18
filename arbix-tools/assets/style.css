@@ -71,3 +71,15 @@ td:first-child,th:first-child{text-align:left}
 .term{padding:10px 0;border-bottom:1px solid var(--line)} .term b{color:var(--mint)} .term p{margin:4px 0 0;color:#D5E0DB}
 #gSearch{margin-bottom:8px}
 .foot{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+.trhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.pill{background:rgba(31,242,181,.15);color:var(--mint);border:1px solid var(--mint);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.bar{height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-bottom:14px}.bar i{display:block;height:100%;background:var(--mint);transition:width .3s}
+.trt{font-family:'Unbounded',sans-serif;font-size:17px;margin:4px 0 8px}
+.situ{background:var(--bg2);border-left:3px solid var(--mint);border-radius:10px;padding:12px 14px;line-height:1.5;margin:0 0 12px}
+.exp{border-radius:12px;padding:12px 14px;line-height:1.5;margin:10px 0}.exp.ok{background:rgba(31,242,181,.1);border:1px solid var(--mint2)}.exp.bad{background:rgba(255,107,107,.08);border:1px solid var(--neg)}
+.opt.pick{border-color:var(--mint);background:rgba(31,242,181,.12)}
+#exStart .chk{border:0;margin:6px 0 10px;text-transform:none;font-size:14px;letter-spacing:0;color:var(--ink)}
+#exStart .chk a,.foot a{color:var(--mint)}
+#exName{margin-bottom:6px}
+#cert{width:100%;height:auto;border-radius:12px;margin:14px 0 8px;display:block}
+.terms .term p{line-height:1.55}

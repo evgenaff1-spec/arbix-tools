@@ -14,11 +14,14 @@ const cls = v => v == null ? 'zero' : v > 0.05 ? 'pos' : v < -0.05 ? 'neg' : 'ze
 try { const tg = window.Telegram?.WebApp; if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor?.('#070A09'); tg.setBackgroundColor?.('#070A09'); } } catch {}
 
 // Tabs
-document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.id === b.dataset.tab));
+function openTab(id) {
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x.dataset.tab === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.id === id));
   scrollTo({ top: 0 });
-});
+}
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => openTab(b.dataset.tab));
+{ const t = new URLSearchParams(location.search).get('tab') || location.hash.slice(1).split('&')[0]; if (['exam','trainer','calc','quiz','check','tpl','gloss','terms'].includes(t)) openTab(t); }
+document.addEventListener('click', e => { const a = e.target.closest('[data-open]'); if (a) { e.preventDefault(); openTab(a.dataset.open); } });
 
 // ---------- SCANNER ----------
 const st = store.get('scan', { ex: ['binance', 'okx', 'bybit'], banks: ['mono', 'privat', 'pumb', 'abank'], asset: 'USDT', amount: '', fee: 0.25, mode: 'maker' });
@@ -182,6 +185,141 @@ function gloss(f = '') {
   $('#gList').innerHTML = ARBI.GLOSSARY.filter(([a, b]) => (a + b).toLowerCase().includes(f)).map(([a, b]) => `<div class="term"><b>${esc(a)}</b><p>${esc(b)}</p></div>`).join('') || '<p class="muted">Нічого не знайдено</p>';
 }
 $('#gSearch').oninput = e => gloss(e.target.value); gloss();
+
+// ---------- TRAINER ----------
+const shuffleArr = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } return a; };
+let tr = null;
+function trStart() {
+  tr = { order: shuffleArr(ARBI.CASES.map((_, i) => i)), i: 0, right: 0 };
+  trShow();
+}
+function trShow() {
+  const box = $('#trBox'); const best = store.get('trainerBest', null);
+  if (tr.i >= tr.order.length) {
+    const n = tr.right, all = tr.order.length, ok = n >= 16;
+    if (best == null || n > best) store.set('trainerBest', n);
+    box.innerHTML = `<div class="result"><div class="kpi"><label>Результат</label><div class="v ${ok ? 'pos' : 'neg'}">${n}/${all}</div></div>
+      <div class="kpi"><label>Статус</label><div class="v ${ok ? 'pos' : 'neg'}">${ok ? 'Готовий до угод ✅' : 'Повтори етап 6'}</div></div>
+      <div class="kpi"><label>Найкращий</label><div class="v">${Math.max(best ?? 0, n)}/${all}</div></div></div>
+      <p class="hint" style="margin-top:12px">Для ДЗ етапу 6: зроби скрін цього екрана і надішли боту з підписом /dz 6</p>
+      <button class="btn" id="trAgain">Пройти ще раз</button>`;
+    $('#trAgain').onclick = trStart; return;
+  }
+  const c = ARBI.CASES[tr.order[tr.i]];
+  const opts = shuffleArr(c.o.map((t, k) => [t, k]));
+  box.innerHTML = `<div class="trhead"><span class="pill">${esc(c.tag)}</span><span class="muted">Ситуація ${tr.i + 1} з ${tr.order.length} · правильно ${tr.right}</span></div>
+    <div class="bar"><i style="width:${tr.i / tr.order.length * 100}%"></i></div>
+    <h4 class="trt">${esc(c.t)}</h4><p class="situ">${esc(c.s)}</p><p class="q"><b>Що робиш?</b></p>
+    ${opts.map(([t, k]) => `<button class="opt" data-k="${k}">${esc(t)}</button>`).join('')}<div id="trExp"></div>`;
+  box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    if (box.dataset.done === String(tr.i)) return; box.dataset.done = String(tr.i);
+    const ok = +b.dataset.k === c.a; if (ok) tr.right++;
+    b.classList.add(ok ? 'right' : 'wrong');
+    box.querySelector(`.opt[data-k="${c.a}"]`).classList.add('right');
+    $('#trExp').innerHTML = `<div class="exp ${ok ? 'ok' : 'bad'}"><b>${ok ? '✅ Правильно' : '❌ Ні'}.</b> ${esc(c.e)}</div><button class="btn" id="trNext">${tr.i + 1 < tr.order.length ? 'Далі →' : 'Результат'}</button>`;
+    $('#trNext').onclick = () => { tr.i++; trShow(); box.scrollIntoView({ behavior: 'smooth' }); };
+  });
+}
+$('#trBox').innerHTML = `<p>Найкращий результат: <b>${store.get('trainerBest', null) ?? '—'}</b>${store.get('trainerBest', null) != null ? '/20' : ''}</p><button class="btn" id="trGo">Почати тренажер</button>`;
+$('#trGo').onclick = trStart;
+
+// ---------- EXAM ----------
+const TG = window.Telegram?.WebApp;
+const initData = TG?.initData || '';
+const tgUser = TG?.initDataUnsafe?.user;
+const savedName = store.get('examName', '') || (tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : '');
+$('#exName').value = savedName;
+let ex = null;
+$('#exGo').onclick = async () => {
+  const name = $('#exName').value.trim().replace(/\s+/g, ' ');
+  if (name.split(' ').length < 2 || name.length < 5) { $('#exMsg').textContent = 'Вкажи імʼя і прізвище — так вони будуть у сертифікаті.'; return; }
+  if (!$('#exAgree').checked) { $('#exMsg').textContent = 'Підтверди, що ознайомився з умовами навчання.'; return; }
+  store.set('examName', name); $('#exMsg').textContent = 'Завантажуємо питання…';
+  try {
+    const r = await fetch('/api/exam', { cache: 'no-store' }); const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status);
+    ex = { name, ...j, ans: {} }; $('#exMsg').textContent = ''; $('#exStart').hidden = true; exRender();
+  } catch (e) { $('#exMsg').textContent = 'Не вдалося завантажити іспит: ' + e.message; }
+};
+function exRender() {
+  const box = $('#exBox'); box.hidden = false;
+  box.innerHTML = `<h3>Фінальний іспит · ${esc(ex.name)}</h3><div class="trhead"><span class="muted" id="exCount">Відповіді: 0/${ex.total}</span><span class="muted">Прохідний бал: ${ex.pass}/${ex.total}</span></div><div class="bar"><i id="exBar" style="width:0"></i></div>` +
+    ex.questions.map((q, i) => `<div class="q" data-id="${q.id}"><p>${i + 1}. ${esc(q.t)}</p>${q.o.map(o => `<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`).join('') +
+    `<button class="btn" id="exSubmit" disabled>Завершити іспит</button><div id="exRes"></div>`;
+  box.querySelectorAll('.q').forEach(qd => qd.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    if (ex.sent) return;
+    qd.querySelectorAll('.opt').forEach(x => x.classList.toggle('pick', x === b));
+    ex.ans[qd.dataset.id] = b.dataset.v;
+    const n = Object.keys(ex.ans).length;
+    $('#exCount').textContent = `Відповіді: ${n}/${ex.total}`; $('#exBar').style.width = n / ex.total * 100 + '%';
+    $('#exSubmit').disabled = n < ex.total;
+  }));
+  $('#exSubmit').onclick = exSubmit;
+  box.scrollIntoView({ behavior: 'smooth' });
+}
+async function exSubmit() {
+  const btn = $('#exSubmit'); btn.disabled = true; btn.textContent = 'Перевіряємо…';
+  try {
+    const r = await fetch('/api/exam', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'submit', name: ex.name, answers: ex.ans, initData }) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status);
+    ex.sent = true; btn.hidden = true;
+    const pct = Math.round(j.score / j.total * 100);
+    let html = `<div class="result"><div class="kpi"><label>Результат</label><div class="v ${j.passed ? 'pos' : 'neg'}">${j.score}/${j.total} · ${pct}%</div></div><div class="kpi"><label>Статус</label><div class="v ${j.passed ? 'pos' : 'neg'}">${j.passed ? 'Складено 🎓' : 'Не складено'}</div></div></div>`;
+    if (j.review?.length) html += `<p class="hint" style="margin-top:12px">Повтори етапи, де були помилки: ${j.review.map(r => `<b>${r.stage}. ${esc(r.title)}</b>`).join(', ')}</p>`;
+    if (j.passed && j.certId) html += `<div id="certWrap"><canvas id="cert" width="1600" height="1130"></canvas><div class="actions"><button class="btn" id="certDl">Завантажити PNG</button>${initData ? '<button class="btn ghost" id="certTg" style="margin-top:0">Надіслати в бот</button>' : ''}<span class="muted" id="certMsg"></span></div><p class="hint">Номер для ДЗ етапу 10: <b>${esc(j.certId)}</b></p></div>`;
+    else if (j.passed && j.certError) html += `<p class="exp bad">${esc(j.certError)}</p>`;
+    if (!j.passed) html += `<button class="btn" id="exRetry">Спробувати ще раз</button>`;
+    $('#exRes').innerHTML = html;
+    if (j.passed && j.certId) { await drawCert(j); TG?.HapticFeedback?.notificationOccurred?.('success'); }
+    $('#exRetry') && ($('#exRetry').onclick = () => { $('#exBox').hidden = true; $('#exStart').hidden = false; scrollTo({ top: 0 }); });
+    $('#exRes').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) { btn.disabled = false; btn.textContent = 'Завершити іспит'; alertBox('Помилка: ' + e.message); }
+}
+const alertBox = t => { $('#exRes').innerHTML = `<p class="exp bad">${esc(t)}</p>`; };
+async function drawCert(j) {
+  const cv = $('#cert'), g = cv.getContext('2d'), W = cv.width, H = cv.height;
+  try { await Promise.all(['900 64px Unbounded', '800 40px Unbounded', '700 30px Manrope', '400 28px Manrope'].map(f => document.fonts.load(f))); } catch {}
+  g.fillStyle = '#070A09'; g.fillRect(0, 0, W, H);
+  const rg = g.createRadialGradient(W * 0.85, -80, 20, W * 0.85, -80, 900); rg.addColorStop(0, 'rgba(31,242,181,.35)'); rg.addColorStop(1, 'rgba(31,242,181,0)');
+  g.fillStyle = rg; g.fillRect(0, 0, W, H);
+  g.strokeStyle = '#1FF2B5'; g.lineWidth = 4; g.strokeRect(40, 40, W - 80, H - 80);
+  g.strokeStyle = 'rgba(31,242,181,.35)'; g.lineWidth = 1.5; g.strokeRect(58, 58, W - 116, H - 116);
+  g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+  g.font = '800 34px Unbounded'; g.fillStyle = '#EEF4F1';
+  const wm = ['ARBI ', '✕', ' TEAM']; const ww = wm.map(t => g.measureText(t).width); let x = W / 2 - ww.reduce((a, b) => a + b) / 2;
+  g.textAlign = 'left'; wm.forEach((t, i) => { g.fillStyle = i === 1 ? '#1FF2B5' : '#EEF4F1'; g.fillText(t, x, 160); x += ww[i]; }); g.textAlign = 'center';
+  g.font = '900 96px Unbounded'; g.fillStyle = '#1FF2B5'; g.fillText('СЕРТИФІКАТ', W / 2, 310);
+  g.font = '700 30px Manrope'; g.fillStyle = '#8FA59D'; g.fillText('ЗАСВІДЧУЄ, ЩО', W / 2, 390);
+  let fs = 76; g.font = `800 ${fs}px Unbounded`; while (g.measureText(j.name).width > W - 260 && fs > 40) { fs -= 4; g.font = `800 ${fs}px Unbounded`; }
+  g.fillStyle = '#EEF4F1'; g.fillText(j.name, W / 2, 500);
+  g.fillStyle = '#1FF2B5'; g.fillRect(W / 2 - 160, 535, 320, 4);
+  g.font = '400 32px Manrope'; g.fillStyle = '#D5E0DB';
+  g.fillText('успішно пройшов(ла) базовий курс P2P-арбітражу ARBI SCHOOL', W / 2, 615);
+  g.fillText(`і склав(ла) фінальний іспит: ${j.score} з ${j.total} (${Math.round(j.score / j.total * 100)}%)`, W / 2, 665);
+  const col = (cx, label, val) => { g.font = '700 22px Manrope'; g.fillStyle = '#8FA59D'; g.fillText(label, cx, 820); g.font = '800 34px Unbounded'; g.fillStyle = '#EEF4F1'; g.fillText(val, cx, 870); };
+  const [y, m, d] = j.date.split('-'); col(W * 0.25, 'ДАТА', `${d}.${m}.${y}`); col(W * 0.5, 'НОМЕР', j.certId); col(W * 0.75, 'ПРОГРАМА', '10 етапів');
+  g.font = '400 22px Manrope'; g.fillStyle = '#8FA59D';
+  g.fillText(`Перевірка: ${location.host} → Іспит → «Перевірити сертифікат». Не є документом про освіту державного зразка.`, W / 2, H - 100);
+  $('#certDl').onclick = () => { const a = document.createElement('a'); a.download = `ARBI_X_TEAM_${j.certId}.png`; a.href = cv.toDataURL('image/png'); a.click(); };
+  if ($('#certTg')) $('#certTg').onclick = async () => {
+    $('#certMsg').textContent = 'Надсилаємо…';
+    try {
+      const r = await fetch('/api/exam', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'send', name: j.name, certId: j.certId, png: cv.toDataURL('image/png'), initData }) });
+      const k = await r.json(); if (!r.ok) throw new Error(k.error || r.status); $('#certMsg').textContent = 'Надіслано в чат з ботом ✅';
+    } catch (e) { $('#certMsg').textContent = 'Не вдалося: ' + e.message; }
+  };
+}
+$('#vGo').onclick = async () => {
+  const id = $('#vId').value.trim(), name = $('#vName').value.trim();
+  if (!id || !name) { $('#vRes').innerHTML = '<p class="muted">Введи номер і імʼя.</p>'; return; }
+  try {
+    const j = await (await fetch('/api/exam?' + new URLSearchParams({ verify: id, name }))).json();
+    $('#vRes').innerHTML = j.valid ? `<div class="kpi"><label>Сертифікат дійсний ✅</label><div class="v pos">${esc(j.name)}</div><div class="muted">виданий ${j.date.split('-').reverse().join('.')}</div></div>`
+      : `<div class="kpi"><label>Результат</label><div class="v neg">Не знайдено ⛔</div><div class="muted">Перевір номер і написання імені</div></div>`;
+  } catch (e) { $('#vRes').innerHTML = `<p class="muted">Помилка: ${esc(e.message)}</p>`; }
+};
+
+// ---------- TERMS ----------
+$('#termsBox').innerHTML = ARBI.TERMS.map(([h, t], i) => `<div class="term"><b>${i + 1}. ${esc(h)}</b><p>${esc(t)}</p></div>`).join('');
 
 if (DEMO) scan();
 })();

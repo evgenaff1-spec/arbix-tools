@@ -1,8 +1,20 @@
 {
   "crons": [
-    { "path": "/api/remind", "schedule": "0 8 * * *" }
+    {
+      "path": "/api/remind",
+      "schedule": "0 8 * * *"
+    }
   ],
   "functions": {
-    "api/remind.js": { "includeFiles": "schedule.json" }
+    "api/remind.js": {
+      "includeFiles": "schedule.json"
+    },
+    "api/support.js": {
+      "includeFiles": "support.json"
+    },
+    "api/nav.js": {
+      "includeFiles": "{nav.json,support.json}",
+      "maxDuration": 60
+    }
   }
 }
