@@ -1,0 +1,16 @@
+{
+  "announcementsTopicId": 26,
+  "defaultTime": "21:00",
+  "lessons": [
+    { "stage": 1,  "title": "Налаштування Binance",       "format": "call",  "date": "", "topicId": 24 },
+    { "stage": 2,  "title": "Як працює P2P",              "format": "video", "date": "", "topicId": 49 },
+    { "stage": 3,  "title": "Прогрів акаунта",            "format": "video", "date": "", "topicId": 47 },
+    { "stage": 4,  "title": "Своє оголошення",            "format": "call",  "date": "", "topicId": 45 },
+    { "stage": 5,  "title": "Перша зв'язка 1–2%",         "format": "video", "date": "", "topicId": 22 },
+    { "stage": 6,  "title": "Безпека угод і апеляції",    "format": "video", "date": "", "topicId": 20 },
+    { "stage": 7,  "title": "Зв'язки 1–5%",               "format": "call",  "date": "", "topicId": 18 },
+    { "stage": 8,  "title": "Друга біржа і мережі",       "format": "call",  "date": "", "topicId": 16 },
+    { "stage": 9,  "title": "Вивід коштів",               "format": "video", "date": "", "topicId": 13 },
+    { "stage": 10, "title": "Фінальний розбір",           "format": "call",  "date": "", "topicId": 12 }
+  ]
+}

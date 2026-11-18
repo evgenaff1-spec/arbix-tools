@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ARBI X TEAM · Tools</title>
+<meta name="theme-color" content="#070A09">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="wm">ARBI <span class="x">✕</span> TEAM <span class="tag">TOOLS</span></div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="scan" class="on">📊 Сканер</button>
+    <button data-tab="calc">🧮 Калькулятор</button>
+    <button data-tab="quiz">✅ Тести</button>
+    <button data-tab="trainer">🎯 Тренажер</button>
+    <button data-tab="exam">🎓 Іспит</button>
+    <button data-tab="check">🛡 Чекліст</button>
+    <button data-tab="tpl">💬 Шаблони</button>
+    <button data-tab="gloss">📖 Глосарій</button>
+  </nav>
+</header>
+
+<main>
+<!-- SCANNER -->
+<section id="scan" class="tab on">
+  <div class="panel controls">
+    <div class="row"><label>Біржі</label><div class="chips" id="exChips"></div></div>
+    <div class="row"><label>Банки</label><div class="chips" id="bankChips"></div></div>
+    <div class="row grid3">
+      <div><label>Монета</label><select id="asset"><option>USDT</option><option>USDC</option></select></div>
+      <div><label>Сума, грн</label><input id="amount" type="number" inputmode="numeric" placeholder="напр. 5000"></div>
+      <div><label>Комісія мейкера, %</label><input id="fee" type="number" step="0.01" value="0.25"></div>
+    </div>
+    <div class="row">
+      <label>Режим</label>
+      <div class="seg" id="mode">
+        <button data-m="maker" class="on">Тейкер → своє оголошення</button>
+        <button data-m="taker">Тейкер → тейкер</button>
+      </div>
+    </div>
+    <div class="row actions">
+      <button id="go" class="btn">Сканувати</button>
+      <label class="auto"><input type="checkbox" id="auto"> Автооновлення 60 с</label>
+      <span id="status" class="muted"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>🔥 Топ зв’язок зараз</h3>
+    <div id="top" class="muted">Обери біржі й банки та натисни «Сканувати».</div>
+  </div>
+
+  <div class="panel">
+    <h3>Найкращі ціни</h3>
+    <p class="hint">Купити — найдешевше оголошення продавця. Продати — найдорожче оголошення покупця. Натисни на рядок, щоб побачити оголошення.</p>
+    <div class="scroll"><table id="best"></table></div>
+    <div id="ads"></div>
+  </div>
+
+  <div class="panel">
+    <h3>Матриця спредів</h3>
+    <p class="hint" id="matrixHint"></p>
+    <div class="scroll"><table id="matrix" class="matrix"></table></div>
+  </div>
+  <p class="disclaimer">Дані беруться з публічних P2P-маркетів бірж і можуть відставати на 20–60 с. Між біржами не враховано комісію мережі. Перед угодою завжди перевіряй ціну на самій біржі.</p>
+</section>
+
+<!-- CALC -->
+<section id="calc" class="tab">
+  <div class="panel">
+    <h3>Калькулятор зв’язки</h3>
+    <div class="grid2">
+      <div><label>Сума, грн</label><input id="cAmt" type="number" value="10000"></div>
+      <div><label>Комісія мейкера, %</label><input id="cFee" type="number" step="0.01" value="0.25"></div>
+      <div><label>Ціна купівлі</label><input id="cBuy" type="number" step="0.01" value="41.50"></div>
+      <div><label>Ціна продажу</label><input id="cSell" type="number" step="0.01" value="42.10"></div>
+    </div>
+    <div class="result" id="cRes"></div>
+    <p class="hint">Формула: (продаж − купівля) / купівля × 100 − комісія мейкера.</p>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" class="tab">
+  <div class="panel"><h3>Тести по етапах</h3><p class="hint">5 питань на етап. 4 з 5 правильних — етап пройдено. Прогрес зберігається на цьому пристрої.</p><div id="quizList" class="stages"></div></div>
+  <div class="panel" id="quizBox" hidden></div>
+</section>
+
+<!-- TRAINER -->
+<section id="trainer" class="tab">
+  <div class="panel">
+    <h3>🎯 Тренажер ситуацій</h3>
+    <p class="hint">20 реальних ситуацій з P2P. Обери, що зробиш, і подивись розбір. Для ДЗ етапу 6 треба від 16/20.</p>
+    <div id="trBox"></div>
+  </div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" class="tab">
+  <div class="panel" id="exStart">
+    <h3>🎓 Фінальний іспит</h3>
+    <p class="hint">30 питань по всіх 10 етапах. Щоб скласти, треба від 24 правильних (80%). Після успіху — іменний сертифікат ARBI X TEAM з номером, який можна перевірити.</p>
+    <label for="exName">Імʼя та прізвище для сертифіката</label>
+    <input id="exName" maxlength="60" placeholder="напр. Олександр Коваленко">
+    <label class="chk"><input type="checkbox" id="exAgree"> <span>Я ознайомився з <a href="#" data-open="terms">умовами навчання</a> і розумію, що сам відповідаю за свої угоди.</span></label>
+    <button class="btn" id="exGo">Почати іспит</button>
+    <p class="muted" id="exMsg"></p>
+  </div>
+  <div class="panel" id="exBox" hidden></div>
+  <div class="panel">
+    <h3>Перевірити сертифікат</h3>
+    <div class="grid2"><div><label>Номер</label><input id="vId" placeholder="AX-261117-XXXXXXXX"></div><div><label>Імʼя та прізвище</label><input id="vName"></div></div>
+    <button class="btn ghost" id="vGo">Перевірити</button>
+    <div id="vRes" class="result"></div>
+  </div>
+</section>
+
+<!-- TERMS -->
+<section id="terms" class="tab">
+  <div class="panel"><h3>⚖️ Умови навчання і відповідальність</h3><div id="termsBox" class="terms"></div></div>
+</section>
+
+<!-- CHECKLIST -->
+<section id="check" class="tab">
+  <div class="panel">
+    <h3>🛡 Перед тим як відпустити USDT</h3>
+    <div id="checkList"></div>
+    <div id="checkRes" class="result"></div>
+    <button class="btn ghost" id="checkReset">Почати заново</button>
+  </div>
+</section>
+
+<!-- TEMPLATES -->
+<section id="tpl" class="tab">
+  <div class="panel"><h3>💬 Шаблони повідомлень для чату ордера</h3><div id="tplList"></div></div>
+</section>
+
+<!-- GLOSSARY -->
+<section id="gloss" class="tab">
+  <div class="panel"><h3>📖 Глосарій</h3><input id="gSearch" placeholder="Пошук терміну…"><div id="gList"></div></div>
+</section>
+</main>
+<footer class="foot">ARBI X TEAM · Базовий тариф · <a href="#" data-open="terms">Умови і відповідальність</a><br>Освітній проєкт. Не є фінансовою порадою.</footer>
+<script src="/assets/data.js"></script>
+<script src="/assets/app.js"></script>
+</body>
+</html>
